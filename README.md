@@ -35,9 +35,9 @@ Assumptions made while writing this program included:
 * A list of keys are unlikely to be mostly anagrams of each other (more detail below.)
 
 Alternative solutions/optimizations considered:
-* Keeping track of keys already searched for, and if a new key is an anagram of a key already searched for, return the results of that former search. However, decided not to do that since that would involve a string comparison with time complexity `O(s)`, `m` times (1 for each existing key in the worst case), so that would add a complexity of `m*s`, without any guarantee of gain.
-    * There would also be the additional memory needed to store the keys already searched for, an additional term of `O(m*s)`.
-    * Even though the smaller term for the complexity would be dropped here, it seemed like added complication for not much gain. A list of keys that are mostly anagrams of each other would be an edge case, IMO.
+* Keeping track of keys already searched for, and if a new key is an anagram of a key already searched for, return the results of that former search. However, decided not to do that since that would involve a string comparison with time complexity `O(s)`, `m` times (1 for each existing key in the worst case), so that would add a complexity of `O(m*s)`, without any guarantee of gain.
+    * There would also be the additional memory needed to store the keys already searched for, an additional term of `O(m*s)` for the space complexity.
+    * Even though the smaller terms for the complexity would be dropped here, it seemed like added complication for not much gain. A list of keys that are mostly anagrams of each other would be an edge case, IMO.
 * Another solution would have been to sort the keys and/or inputs, which would have a time complexity of `n*s*log(s) + m*s*log(s) = (n + m)*s*log(s)`, which is scales worse than `n*m*s`.
     * Although if, say, a list of inputs or keys was to be kept around for comparison many times in the future, it may then be worthwhile to preprocess the strings by sorting & grouping anagrams.
     * It's also worth noting that this would be the most compact soluton, code-wise, which counts for a lot. But I'm making the tradeoff for a slightly more optimal solution here.

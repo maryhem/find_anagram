@@ -24,9 +24,7 @@ def find_anagrams(keys, candidates_file):
     """
     keys = set(keys)
     # key_counts is a dict of key: {character: count}
-    key_counts = {}
-    for k in keys:
-        key_counts[k] = calculate_char_counts(k)
+    key_counts = {k: calculate_char_counts(k) for k in keys}
 
     # Results dict
     key_anagrams = {k: set() for k in keys}

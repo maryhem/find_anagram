@@ -30,11 +30,11 @@ The space complexity is because the function builds a return value mapping each 
 
 ## Assumptions & alternatives considered
 
-Assumptions made while writing this program include:
+### Assumptions made while writing this program include:
 * Duplicate words in either file should be ignored- BUT, having a lot of duplicates would be unusual.
 * The number of anagrams in the input file for any given key will normally be much smaller than the overall size of the input file (hence my memory-conscious solution.)
 
-Alternative solutions considered:
+### Alternative solutions considered:
 * Sorting the key & input strings, and then comparing the sorted strings. However, just sorting the strings would cost `n*s*log(s) + m*s*log(s) = (n + m)*s*log(s)`, and then sorting the key and/or candidate lists would cost an additional `n*log(n)` or `m*log(m)`. So, this solution would scale much worse than the solution I chose.
     * Although if, say, a list of inputs or keys was to be kept around for comparison many times in the future, it may then be worthwhile to preprocess the strings by sorting & grouping anagrams.
     * It's also worth noting that this would be the most compact soluton, code-wise, which counts for a lot. But I'm making the tradeoff for a slightly more optimal solution here.

@@ -1,8 +1,27 @@
 #!/usr/bin/env python3
 
 import unittest
+from unittest.mock import patch, mock_open
 
-from find_anagrams import find_anagrams, is_anagram
+from find_anagrams import calculate_char_counts, find_anagrams
+
+
+def run_find_anagrams(keys, candidates):
+    """Runs find_anagrams with the file open function mocked out.
+
+    Arguments:
+        keys (list): List of strings to look for anagrams for.
+        candidates (list): List of candidate strings.
+
+    Returns:
+        A dict of key: list_of_anagrams.
+    """
+    m = mock_open(read_data='\n'.join(candidates))
+    m.return_value.__iter__ = lambda self: self
+    m.return_value.__next__ = lambda self: next(iter(self.readline, ''))
+    with patch('builtins.open', m):
+        anagrams = find_anagrams(keys, 'dummy_candidate_file')
+    return anagrams
 
 
 class TestSingleKey(unittest.TestCase):
@@ -12,31 +31,31 @@ class TestSingleKey(unittest.TestCase):
     def test_key_has_one_anagram(self):
         candidates = ['foo', 'bac', 'bar']
         expected_anagrams = {
-            'abc': ['bac']
+            'abc': set(['bac'])
         }
-        self.assertEqual(find_anagrams(self.keys, candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(self.keys, candidates), expected_anagrams)
 
     def test_key_has_many_anagrams(self):
-        # Also shows a string is its own anagram
+        # Also proves that a string is its own anagram
         candidates = ['bac', 'abc', 'foo', 'cab']
         expected_anagrams = {
-            'abc': ['cab', 'abc', 'bac']
+            'abc': set(['abc', 'bac', 'cab'])
         }
-        self.assertEqual(find_anagrams(self.keys, candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(self.keys, candidates), expected_anagrams)
 
     def test_key_has_no_anagrams(self):
         candidates = ['foo', 'bar', 'baz']
         expected_anagrams = {
-            'abc': []
+            'abc': set()
         }
-        self.assertEqual(find_anagrams(self.keys, candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(self.keys, candidates), expected_anagrams)
 
     def test_all_candidates_are_anagrams(self):
         candidates = ['bac', 'abc', 'cab', 'bca']
         expected_anagrams = {
-            'abc': ['cab', 'abc', 'bac', 'bca']
+            'abc': set(['abc', 'bac', 'cab', 'bca'])
         }
-        self.assertEqual(find_anagrams(self.keys, candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(self.keys, candidates), expected_anagrams)
 
 
 class TestMultipleKeys(unittest.TestCase):
@@ -46,26 +65,35 @@ class TestMultipleKeys(unittest.TestCase):
     def test_keys_no_matches(self):
         candidates = ['foo', 'bar', 'baz']
         expected_anagrams = {
-            'abc': [],
-            'def': []
+            'abc': set(),
+            'def': set()
         }
-        self.assertEqual(find_anagrams(self.keys, candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(self.keys, candidates), expected_anagrams)
 
     def test_keys_one_has_matches(self):
         candidates = ['foo', 'acb', 'bar']
         expected_anagrams = {
-            'abc': ['acb'],
-            'def': []
+            'abc': set(['acb']),
+            'def': set()
         }
-        self.assertEqual(find_anagrams(self.keys, candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(self.keys, candidates), expected_anagrams)
 
     def test_keys_both_have_matches(self):
         candidates = ['foo', 'acb', 'fed']
         expected_anagrams = {
-            'abc': ['acb'],
-            'def': ['fed']
+            'abc': set(['acb']),
+            'def': set(['fed'])
         }
-        self.assertEqual(find_anagrams(self.keys, candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(self.keys, candidates), expected_anagrams)
+
+    def test_email_example_just_because(self):
+        keys = ['foo', 'bar']
+        candidates = ['ofo', 'oof', 'bar', 'baz', 'jig']
+        expected_anagrams = {
+            'bar': set(['bar']),
+            'foo': set(['ofo', 'oof'])
+        }
+        self.assertEqual(run_find_anagrams(keys, candidates), expected_anagrams)
 
 
 class TestSingleCandidate(unittest.TestCase):
@@ -76,24 +104,24 @@ class TestSingleCandidate(unittest.TestCase):
     def test_candidate_matches_one_key(self):
         keys = ['fed', 'cab']
         expected_anagrams = {
-            'fed': [],
-            'cab': ['abc']
+            'fed': set(),
+            'cab': set(['abc'])
         }
-        self.assertEqual(find_anagrams(keys, self.candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(keys, self.candidates), expected_anagrams)
 
     def test_candidate_matches_many_keys(self):
         keys = ['cab', 'bac', 'fed']
         expected_anagrams = {
-            'cab': ['abc'],
-            'bac': ['abc'],
-            'fed': []
+            'cab': set(['abc']),
+            'bac': set(['abc']),
+            'fed': set()
         }
-        self.assertEqual(find_anagrams(keys, self.candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(keys, self.candidates), expected_anagrams)
 
     def test_candidate_matches_no_keys(self):
         keys = ['foo', 'bar', 'baz']
-        expected_anagrams = dict((k, []) for k in keys)
-        self.assertEqual(find_anagrams(keys, self.candidates), expected_anagrams)
+        expected_anagrams = dict((k, set()) for k in keys)
+        self.assertEqual(run_find_anagrams(keys, self.candidates), expected_anagrams)
 
 
 class TestEmptyLists(unittest.TestCase):
@@ -101,20 +129,17 @@ class TestEmptyLists(unittest.TestCase):
     def test_candidates_empty(self):
         keys = ['abc', 'def']
         expected_anagrams = {
-            'abc': [],
-            'def': []
+            'abc': set(),
+            'def': set()
         }
-        anagrams = find_anagrams(keys, [])
-        self.assertEqual(anagrams, expected_anagrams)
+        self.assertEqual(run_find_anagrams(keys, []), expected_anagrams)
 
     def test_keys_empty(self):
         candidates = ['abc', 'def', 'fed']
-        anagrams = find_anagrams([], candidates)
-        self.assertEqual(anagrams, {})
+        self.assertEqual(run_find_anagrams([], candidates), {})
 
     def test_keys_and_candidates_empty(self):
-        anagrams = find_anagrams([], [])
-        self.assertEqual(anagrams, {})
+        self.assertEqual(run_find_anagrams([], []), {})
 
 
 class TestDuplicates(unittest.TestCase):
@@ -123,37 +148,44 @@ class TestDuplicates(unittest.TestCase):
         keys = ['abc', 'def', 'abc']
         candidates = ['abc', 'fed']
         expected_anagrams = {
-            'abc': ['abc'],
-            'def': ['fed']
+            'abc': set(['abc']),
+            'def': set(['fed'])
         }
-        self.assertEqual(find_anagrams(keys, candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(keys, candidates), expected_anagrams)
 
     def test_duplicate_candidates(self):
         keys = ['abc', 'def']
         candidates = ['abc', 'fed', 'fed']
         expected_anagrams = {
-            'abc': ['abc'],
-            'def': ['fed']
+            'abc': set(['abc']),
+            'def': set(['fed'])
         }
-        self.assertEqual(find_anagrams(keys, candidates), expected_anagrams)
+        self.assertEqual(run_find_anagrams(keys, candidates), expected_anagrams)
 
 
-class TestIsAnagram(unittest.TestCase):
+class TestCalculateCharCounts(unittest.TestCase):
 
-    def test_true(self):
-        self.assertTrue(is_anagram('foo', {'o': 2, 'f': 1}))
+    def test_different_letters(self):
+        expected_char_counts = {
+            'f': 1,
+            'o': 1,
+            'g': 1
+        }
+        self.assertEqual(calculate_char_counts('fog'), expected_char_counts)
 
-    def test_false_wrong_letters(self):
-        self.assertFalse(is_anagram('zoo', {'o': 2, 'f': 1}))
+    def test_same_letters(self):
+        expected_char_counts = {
+            'f': 1,
+            'o': 2
+        }
+        self.assertEqual(calculate_char_counts('foo'), expected_char_counts)
 
-    def test_false_too_many_letters(self):
-        self.assertFalse(is_anagram('foo', {'o': 3}))
+    def test_one_char(self):
+        self.assertEqual(calculate_char_counts('f'), {'f': 1})
 
-    def test_false_wrong_length(self):
-        self.assertFalse(is_anagram('foo', {'o': 3, 'f': 1}))
-
-    def test_empty_char_dict(self):
-        self.assertFalse(is_anagram('abc', {}))
+    def test_empty_string(self):
+        # Should never run into this in the program, but it's good to check.
+        self.assertEqual(calculate_char_counts(''), {})
 
 
 class TestInputUnchanged(unittest.TestCase):
@@ -161,17 +193,10 @@ class TestInputUnchanged(unittest.TestCase):
     def test_keys_and_candidates_unchanged(self):
         keys = ['foo', 'bar', 'baz']
         candidates = ['abc', 'ofo', 'bar', 'oof']
-        find_anagrams(keys, candidates)
+        run_find_anagrams(keys, candidates)
         self.assertEqual(keys, ['foo', 'bar', 'baz'])
         self.assertEqual(candidates, ['abc', 'ofo', 'bar', 'oof'])
 
-    def test_is_anagram_dict_unchanged(self):
-        candidate_string = 'abc'
-        char_counts = {'a': 1, 'b': 1, 'c': 1}
-        is_anagram(candidate_string, char_counts)
-        self.assertEqual(candidate_string, 'abc')
-        self.assertEqual(char_counts, {'a': 1, 'b': 1, 'c': 1})
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

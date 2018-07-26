@@ -9,7 +9,7 @@ The program takes 2 required arguments, `--input` and `--keys`, both of which ac
 Run the program on the command line:
 
 ```
-python find_anagrams.py --input input.txt --keys keys.txt
+python3 find_anagrams.py --input input.txt --keys keys.txt
 ```
 
 ## Running the tests
@@ -17,7 +17,7 @@ python find_anagrams.py --input input.txt --keys keys.txt
 Run the test suite on the command line:
 
 ```
-python test_anagrams.py
+python3 test_anagrams.py
 ```
 
 ## Time and space complexity

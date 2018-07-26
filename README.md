@@ -1,4 +1,4 @@
-# find_anagram.py
+# find_anagrams.py
 
 A program which reads a newline-separated list of words (the candidates) as input and, given another short list of words (the keys), writes out all anagrams of each key that are present in the input.
 
